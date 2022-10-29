@@ -5,7 +5,7 @@ static int cpu_load(void) {
 }
 
 static int cpu_temperature(void) {
-        const char *path = "/sys/devices/platform/coretemp.0/hwmon/hwmon0/temp1_input";
+        static const char *path = "/sys/devices/platform/coretemp.0/hwmon/hwmon0/temp1_input";
         const int threshold = 60;
 
         FILE *f = fopen(path, "r");
@@ -17,8 +17,7 @@ static int cpu_temperature(void) {
         int t;
         if (fscanf(f, "%d", &t) != 1) {
                 error("cpu: fscanf() failed.");
-                fclose(f);
-                return 0;
+                t = 0;
         }
 
         fclose(f);
@@ -27,7 +26,7 @@ static int cpu_temperature(void) {
 
 char *cpu_update(void) {
         static char text[16];
-        if (snprintf(text, size(text), "CPU %2d%% %d°C", cpu_load(), cpu_temperature()) < 0) {
+        if (snprintf(text, size(text), "CPU %2d%% %2d°C", cpu_load(), cpu_temperature()) < 0) {
                 error("cpu: snprintf() failed.");
                 return "";
         }

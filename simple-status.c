@@ -3,6 +3,13 @@
 #include "loadavg.h"
 #include "cpu.h"
 
+static bool quit = false;
+
+static void signal_handler(int signum) {
+        if (signum == SIGTERM || signum == SIGINT)
+                quit = true;
+}
+
 void error(const char *fmt, ...) {
         fprintf(stderr, "simple-status: error: ");
 
@@ -15,10 +22,18 @@ void error(const char *fmt, ...) {
 }
 
 int main(int argc, char **argv) {
-        while (true) {
+        struct sigaction sa;
+        memset(&sa, 0, sizeof(sa));
+        sa.sa_handler = signal_handler;
+        sigaction(SIGTERM, &sa, NULL);
+        sigaction(SIGINT, &sa, NULL);
+        sigaction(SIGUSR1, &sa, NULL);  /* Break sleep(), force update */
+
+        while (!quit) {
                 printf("%s | %s | %s\n", cpu_update(), loadavg_update(), clock_update());
                 fflush(stdout);
                 sleep(1);
         }
+
         return EXIT_SUCCESS;
 }

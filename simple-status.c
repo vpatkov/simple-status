@@ -1,6 +1,7 @@
 #include "simple-status.h"
 #include "clock.h"
 #include "loadavg.h"
+#include "cpu.h"
 
 void error(const char *fmt, ...) {
         fprintf(stderr, "simple-status: error: ");
@@ -15,7 +16,7 @@ void error(const char *fmt, ...) {
 
 int main(int argc, char **argv) {
         while (true) {
-                printf("%s | %s\n", loadavg_update(), clock_update());
+                printf("%s | %s | %s\n", cpu_update(), loadavg_update(), clock_update());
                 fflush(stdout);
                 sleep(1);
         }

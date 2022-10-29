@@ -2,7 +2,7 @@
 #include "loadavg.h"
 
 char *loadavg_update(void) {
-        static float threshold = 2.0;
+        const float threshold = 2.0;
         static char text[16];
 
         double loadavg;

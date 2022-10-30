@@ -19,14 +19,16 @@ static unsigned long long read_ull(const char *path) {
 
 static void print_with_suffix(char *buf, size_t buf_len, double d) {
         int err;
-        if (d >= 0.1e9)
-                err = snprintf(buf, buf_len, "%4.1fG", d/1e9);
+        if (d >= 10e6)
+                err = snprintf(buf, buf_len, "%4.0fM", d/1e6);
         else if (d >= 0.1e6)
-                err = snprintf(buf, buf_len, "%4.1fM", d/1e6);
+                err = snprintf(buf, buf_len, "%3.1fM", d/1e6);
+        else if (d >= 10e3)
+                err = snprintf(buf, buf_len, "%4.0fk", d/1e3);
         else if (d >= 0.1e3)
-                err = snprintf(buf, buf_len, "%4.1fk", d/1e3);
+                err = snprintf(buf, buf_len, "%3.1fk", d/1e3);
         else
-                err = snprintf(buf, buf_len, "%5.0f", d);
+                err = snprintf(buf, buf_len, "%4.0f", d);
 
         if (err < 0) {
                 error("network: snprintf() failed.");

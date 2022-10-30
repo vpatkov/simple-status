@@ -1,7 +1,7 @@
 #ifndef SIMPLE_STATUS_H
 #define SIMPLE_STATUS_H
 
-#define _POSIX_C_SOURCE 199309L
+#define _DEFAULT_SOURCE
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -23,6 +23,12 @@
 
 #define size(a) sizeof(a)/sizeof(*a)
 
-extern void error(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+struct colors {
+        unsigned long fg, bg;
+};
+
+extern struct colors colors_normal, colors_highlight;
+
+extern void error(const char *format, ...) __attribute__((format(printf, 1, 2)));
 
 #endif

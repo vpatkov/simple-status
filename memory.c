@@ -1,23 +1,6 @@
 #include "simple-status.h"
 #include "memory.h"
 
-static bool read_field(
-        const char *field, const char *s,
-        unsigned long long *result
-) {
-        const int len = strlen(field);
-        if (strncmp(field, s, len) == 0) {
-                errno = 0;
-                *result = strtoull(s + len, NULL, 10);
-                if (errno) {
-                        error("memory: strtoull() failed: %s.", strerror(errno));
-                        *result = 0;
-                }
-                return true;
-        }
-        return false;
-}
-
 /* in percents */
 static int memory_usage(void) {
         static const char *path = "/proc/meminfo";
@@ -33,10 +16,10 @@ static int memory_usage(void) {
         int read_counter = 0;
         while (fgets(line, size(line), f) != NULL && read_counter < 4) {
                 if (
-                        read_field("MemTotal:", line, &memtotal) ||
-                        read_field("MemFree:", line, &memfree) ||
-                        read_field("Buffers:", line, &buffers) ||
-                        read_field("Cached:", line, &cached)
+                        sscanf(line, "MemTotal: %llu", &memtotal) == 1 ||
+                        sscanf(line, "MemFree: %llu", &memfree) == 1 ||
+                        sscanf(line, "Buffers: %llu", &buffers) == 1 ||
+                        sscanf(line, "Cached: %llu", &cached) == 1
                 )
                         read_counter++;
         }

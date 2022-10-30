@@ -1,6 +1,10 @@
 #ifndef SIMPLE_STATUS_H
 #define SIMPLE_STATUS_H
 
+#ifndef __linux__
+#error "This works on Linux only"
+#endif
+
 #define _DEFAULT_SOURCE
 
 #include <stdint.h>

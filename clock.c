@@ -1,6 +1,6 @@
-#include <time.h>
 #include "simple-status.h"
 #include "clock.h"
+#include <time.h>
 
 char *clock_update(void) {
         static char text[64];

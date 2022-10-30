@@ -1,10 +1,11 @@
 #include "simple-status.h"
-#include "clock.h"
-#include "loadavg.h"
-#include "cpu.h"
-#include "memory.h"
-#include "network.h"
-#include "sound.h"
+
+#include "modules/clock.h"
+#include "modules/loadavg.h"
+#include "modules/cpu.h"
+#include "modules/memory.h"
+#include "modules/network.h"
+#include "modules/sound.h"
 
 static bool quit = false;
 

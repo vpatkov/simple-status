@@ -3,6 +3,8 @@
 #include "loadavg.h"
 #include "cpu.h"
 #include "memory.h"
+#include "network.h"
+#include "sound.h"
 
 static bool quit = false;
 
@@ -34,10 +36,12 @@ int main(int argc, char **argv) {
         sigaction(SIGUSR1, &sa, NULL);  /* Break sleep(), force update */
 
         while (!quit) {
-                printf("%s | %s | %s | %s\n", 
+                printf("%s | %s | %s | %s | %s | %s\n", 
+                        sound_update(),
                         cpu_update(), 
                         memory_update(), 
-                        loadavg_update(), 
+                        loadavg_update(),
+                        network_update(),
                         clock_update());
                 fflush(stdout);
                 sleep(1);

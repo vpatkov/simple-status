@@ -31,7 +31,7 @@ static int memory_usage(void) {
         char line[128];
         unsigned long long memtotal, memfree, buffers, cached;
         int read_counter = 0;
-        while (fgets(line, size(line), f) != NULL) {
+        while (fgets(line, size(line), f) != NULL && read_counter < 4) {
                 if (
                         read_field("MemTotal:", line, &memtotal) ||
                         read_field("MemFree:", line, &memfree) ||

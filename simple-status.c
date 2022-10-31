@@ -28,6 +28,22 @@ void error(const char *format, ...) {
         fputc('\n', stderr);
 }
 
+int pscanf(const char *path, const char *format, ...) {
+        FILE *f = fopen(path, "r");
+        if (f == NULL) {
+                error("can't open %s: %s.", path, strerror(errno));
+                return -1;
+        }
+
+        va_list args;
+        va_start(args, format);
+        int r = vfscanf(f, format, args);
+        va_end(args);
+
+        fclose(f);
+        return r;
+}
+
 int main(int argc, char **argv) {
         struct sigaction sa;
         memset(&sa, 0, sizeof(sa));

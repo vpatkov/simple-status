@@ -2,21 +2,6 @@
 #include "network.h"
 #include <time.h>
 
-static unsigned long long read_ull(const char *path) {
-        FILE *f = fopen(path, "r");
-        if (f == NULL) {
-                error("network: can't open %s: %s.", path, strerror(errno));
-                return 0;
-        }
-        unsigned long long n;
-        if (fscanf(f, "%llu", &n) != 1) {
-                error("network: fscanf() on %s failed.", path);
-                n = 0;
-        }
-        fclose(f);
-        return n;
-}
-
 static void print_with_suffix(char *buf, size_t buf_len, double d) {
         int err;
         double m = d/1e6, k = d/1e3;
@@ -38,21 +23,16 @@ static void print_with_suffix(char *buf, size_t buf_len, double d) {
         }
 }
 
-static double seconds_between(struct timespec before, struct timespec after) {
-        double sec = (double)(after.tv_sec - before.tv_sec);
-        double nsec = (double)(after.tv_nsec - before.tv_nsec) / 1e9;
-        if (nsec >= 0)
-                return sec + nsec;
-        else
-                return sec + nsec + 1.0;
-}
-
 char *network_update(void) {
         const double rx_threshold = 1e6;
         const double tx_threshold = 100e3;
 
-        unsigned long long rx_bytes = read_ull("/sys/class/net/enp6s0/statistics/rx_bytes"),
-                           tx_bytes = read_ull("/sys/class/net/enp6s0/statistics/tx_bytes");
+        unsigned long long rx_bytes, tx_bytes;
+        if (pscanf("/sys/class/net/enp6s0/statistics/rx_bytes", "%llu", &rx_bytes) != 1 ||
+            pscanf("/sys/class/net/enp6s0/statistics/tx_bytes", "%llu", &tx_bytes) != 1) {
+                error("network: pscanf() failed.");
+                return "";
+        }
 
         struct timespec ts;
         if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {
@@ -63,9 +43,10 @@ char *network_update(void) {
         static unsigned long long rx_bytes_prev, tx_bytes_prev;
         static struct timespec ts_prev;
 
-        double diff_seconds = seconds_between(ts_prev, ts);
-        double rx_speed = (double)(rx_bytes - rx_bytes_prev) / diff_seconds;
-        double tx_speed = (double)(tx_bytes - tx_bytes_prev) / diff_seconds;
+        double interval = (double)(ts.tv_sec - ts_prev.tv_sec) +
+                (double)(ts.tv_nsec - ts_prev.tv_nsec) / 1e9;
+        double rx_speed = (double)(rx_bytes - rx_bytes_prev) / interval;
+        double tx_speed = (double)(tx_bytes - tx_bytes_prev) / interval;
 
         rx_bytes_prev = rx_bytes;
         tx_bytes_prev = tx_bytes;

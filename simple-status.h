@@ -33,6 +33,10 @@ struct colors {
 
 extern struct colors colors_normal, colors_highlight;
 
-extern void error(const char *format, ...) __attribute__((format(printf, 1, 2)));
+extern void error(const char *format, ...)
+        __attribute__((format(printf, 1, 2)));
+
+extern int pscanf(const char *path, const char *format, ...)
+        __attribute__((format(scanf, 2, 3)));
 
 #endif

@@ -3,26 +3,17 @@
 
 /* in percents */
 static int cpu_usage(void) {
-        static const char *path = "/proc/stat";
-
-        FILE *f = fopen(path, "r");
-        if (f == NULL) {
-                error("cpu: can't open %s: %s.", path, strerror(errno));
-                return 0;
-        }
-
         unsigned long long user, nice, system, idle;
-        if (fscanf(f, "cpu %llu %llu %llu %llu", &user, &nice, &system, &idle) != 4) {
-                error("cpu: fscanf() on %s failed.", path);
-                fclose(f);
+        if (pscanf("/proc/stat", "cpu %llu %llu %llu %llu",
+                        &user, &nice, &system, &idle) != 4) {
+                error("cpu: pscanf() on /proc/stat failed.");
                 return 0;
         }
-        fclose(f);
 
         static unsigned long long total_prev, idle_prev;
         unsigned long long total = user + nice + system + idle,
-                           diff_total = total - total_prev,
-                           diff_idle = idle - idle_prev;
+                diff_total = total - total_prev,
+                diff_idle = idle - idle_prev;
 
         total_prev = total;
         idle_prev = idle;
@@ -36,21 +27,12 @@ static int cpu_usage(void) {
 /* in degrees Celsius */
 static int cpu_temperature(void) {
         static const char *path = "/sys/devices/platform/coretemp.0/hwmon/hwmon0/temp1_input";
-
-        FILE *f = fopen(path, "r");
-        if (f == NULL) {
-                error("cpu: can't open %s: %s.", path, strerror(errno));
+        long t;
+        if (pscanf(path, "%ld", &t) != 1) {
+                error("cpu: pscanf() on %s failed.", path);
                 return 0;
         }
-
-        int t;
-        if (fscanf(f, "%d", &t) != 1) {
-                error("cpu: fscanf() on %s failed.", path);
-                t = 0;
-        }
-
-        fclose(f);
-        return t/1000;
+        return (t+500)/1000;
 }
 
 char *cpu_update(void) {

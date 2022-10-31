@@ -14,16 +14,16 @@ static int volume(void) {
 }
 
         snd_mixer_t *mixer = NULL;
-        snd_mixer_selem_id_t *id = NULL;
-
         E(snd_mixer_open(&mixer, 0));
         E(snd_mixer_attach(mixer, "default"));
         E(snd_mixer_selem_register(mixer, NULL, NULL));
         E(snd_mixer_load(mixer));
 
+        snd_mixer_selem_id_t *id;
         snd_mixer_selem_id_alloca(&id);
         snd_mixer_selem_id_set_index(id, 0);
         snd_mixer_selem_id_set_name(id, "Master");
+
         snd_mixer_elem_t *elem;
         E((elem = snd_mixer_find_selem(mixer, id)) == NULL);
         long v, vmax, vmin;
@@ -32,9 +32,9 @@ static int volume(void) {
         int s;
         E(snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_FRONT_LEFT, &s));
 
-#undef E
-
         snd_mixer_close(mixer);
+
+#undef E
 
         int v_percents = (vmax-vmin == 0) ? 100 :
                 100 * (v-vmin) / (vmax-vmin);

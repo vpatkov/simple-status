@@ -3,6 +3,7 @@
 #include "modules/clock.h"
 #include "modules/loadavg.h"
 #include "modules/cpu.h"
+#include "modules/gpu.h"
 #include "modules/memory.h"
 #include "modules/network.h"
 #include "modules/sound.h"
@@ -53,10 +54,11 @@ int main(int argc, char **argv) {
         sigaction(SIGUSR1, &sa, NULL);  /* Break sleep(), force update */
 
         while (!quit) {
-                printf("%s | %s | %s | %s | %s | %s\n", 
+                printf("%s | %s | %s | %s | %s | %s | %s\n",
                         sound_update(),
-                        cpu_update(), 
-                        memory_update(), 
+                        cpu_update(),
+                        gpu_update(),
+                        memory_update(),
                         loadavg_update(),
                         network_update(),
                         clock_update());

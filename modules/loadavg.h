@@ -1,6 +1,6 @@
 #ifndef LOADAVG_H
 #define LOADAVG_H
 
-extern char *loadavg_update(void);
+extern struct block *loadavg_update(void);
 
 #endif

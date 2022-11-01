@@ -1,6 +1,6 @@
 #ifndef GPU_H
 #define GPU_H
 
-extern char *gpu_update(void);
+extern struct block *gpu_update(void);
 
 #endif

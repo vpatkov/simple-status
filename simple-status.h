@@ -27,11 +27,10 @@
 
 #define size(a) sizeof(a)/sizeof(*a)
 
-struct colors {
-        unsigned long fg, bg;
+struct block {
+        const char *full_text;
+        bool urgent;
 };
-
-extern struct colors colors_normal, colors_highlight;
 
 extern void error(const char *format, ...)
         __attribute__((format(printf, 1, 2)));

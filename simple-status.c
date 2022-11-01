@@ -8,10 +8,30 @@
 #include "modules/network.h"
 #include "modules/sound.h"
 
-static bool quit = false;
+struct module {
+        const char *name;
+        struct block *(*update)(void);
+};
 
-struct colors colors_normal = { 0xffffff, 0x000000 },
-              colors_highlight = { 0x000000, 0xffff00 };
+static struct module modules[] = {
+        { .name = "sound", .update = sound_update },
+        { .name = "cpu", .update = cpu_update },
+        { .name = "gpu", .update = gpu_update },
+        { .name = "memory", .update = memory_update },
+        { .name = "loadavg", .update = loadavg_update },
+        { .name = "network", .update = network_update },
+        { .name = "clock", .update = clock_update },
+};
+
+struct colors {
+        long fg, bg;  /* 0xRRGGBB or -1 for i3bar's default */
+};
+
+static struct colors
+        colors_normal = { .fg = -1, .bg = -1 },
+        colors_urgent = { .fg = 0x000000, .bg = 0xffff00 };
+
+static bool quit = false;
 
 static void signal_handler(int signum) {
         if (signum == SIGTERM || signum == SIGINT)
@@ -53,15 +73,30 @@ int main(int argc, char **argv) {
         sigaction(SIGINT, &sa, NULL);
         sigaction(SIGUSR1, &sa, NULL);  /* Break sleep(), force update */
 
+        printf("{\"version\":1}\n[\n");
+
         while (!quit) {
-                printf("%s | %s | %s | %s | %s | %s | %s\n",
-                        sound_update(),
-                        cpu_update(),
-                        gpu_update(),
-                        memory_update(),
-                        loadavg_update(),
-                        network_update(),
-                        clock_update());
+                printf("[{");
+                for (size_t i = 0; i < size(modules); i++) {
+                        if (i > 0)
+                                printf("},{");
+
+                        struct module *m = &modules[i];
+                        struct block *b = m->update();
+
+                        printf("\"name\":\"%s\"", m->name);
+                        printf(",\"full_text\":\"%s\"", b->full_text);
+
+                        if (b->urgent)
+                                printf(",\"urgent\":true");
+
+                        struct colors *c = b->urgent ? &colors_urgent : &colors_normal;
+                        if (c->fg != -1)
+                                printf(",\"color\":\"#%06lx\"", c->fg & 0xffffff);
+                        if (c->bg != -1)
+                                printf(",\"background\":\"#%06lx\"", c->bg & 0xffffff);
+                }
+                printf("}],\n");
                 fflush(stdout);
                 sleep(1);
         }

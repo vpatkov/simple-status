@@ -12,12 +12,18 @@ static int gpu_temperature(void) {
         return (t+500)/1000;
 }
 
-char *gpu_update(void) {
-        //const int temperature_threshold = 60;
-        static char text[16];
-        if (snprintf(text, size(text), "GPU %2d°C", gpu_temperature()) < 0) {
-                error("gpu: snprintf() failed.");
-                return "";
-        }
-        return text;
+struct block *gpu_update(void) {
+        const int temperature_threshold = 60;
+
+        static char full_text[16];
+        static struct block block = {
+                .full_text = full_text,
+        };
+
+        int t = gpu_temperature();
+        block.urgent = t >= temperature_threshold;
+        if (snprintf(full_text, size(full_text), "GPU %2d°C", t) < 0)
+                *full_text = 0;
+
+        return &block;
 }

@@ -1,20 +1,24 @@
 #include "simple-status.h"
 #include "loadavg.h"
 
-char *loadavg_update(void) {
+struct block *loadavg_update(void) {
         const float threshold = 2.0;
-        static char text[16];
+
+        static char full_text[16];
+        static struct block block = {
+                .full_text = full_text,
+        };
 
         double loadavg;
         if (getloadavg(&loadavg, 1) != 1) {
                 error("loadavg: getloadavg() failed.");
-                return "";
+                *full_text = 0;
+                return &block;
         }
 
-        if (snprintf(text, size(text), "LOAD %.1f", loadavg) < 0) {
-                error("loadavg: snprintf() failed.");
-                return "";
-        }
+        block.urgent = loadavg >= threshold;
+        if (snprintf(full_text, size(full_text), "LOAD %.1f", loadavg) < 0)
+                *full_text = 0;
 
-        return text;
+        return &block;
 }

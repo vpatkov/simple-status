@@ -17,27 +17,32 @@ static void print_with_suffix(char *buf, size_t buf_len, double d) {
         else
                 err = snprintf(buf, buf_len, "%4.0f", d);
 
-        if (err < 0) {
-                error("network: snprintf() failed.");
+        if (err < 0)
                 *buf = 0;
-        }
 }
 
-char *network_update(void) {
+struct block *network_update(void) {
         const double rx_threshold = 1e6;
         const double tx_threshold = 100e3;
+
+        static char full_text[32];
+        static struct block block = {
+                .full_text = full_text,
+        };
 
         unsigned long long rx_bytes, tx_bytes;
         if (pscanf("/sys/class/net/enp6s0/statistics/rx_bytes", "%llu", &rx_bytes) != 1 ||
             pscanf("/sys/class/net/enp6s0/statistics/tx_bytes", "%llu", &tx_bytes) != 1) {
                 error("network: pscanf() failed.");
-                return "";
+                *full_text = 0;
+                return &block;
         }
 
         struct timespec ts;
         if (clock_gettime(CLOCK_MONOTONIC_RAW, &ts) == -1) {
                 error("network: clock_gettime() failed: %s.", strerror(errno));
-                return "";
+                *full_text = 0;
+                return &block;
         }
 
         static unsigned long long rx_bytes_prev, tx_bytes_prev;
@@ -52,15 +57,14 @@ char *network_update(void) {
         tx_bytes_prev = tx_bytes;
         ts_prev = ts;
 
-        static char text[32], rx_speed_text[8], tx_speed_text[8];
-
+        static char rx_speed_text[8], tx_speed_text[8];
         print_with_suffix(rx_speed_text, size(rx_speed_text), rx_speed);
         print_with_suffix(tx_speed_text, size(tx_speed_text), tx_speed);
 
-        if (snprintf(text, size(text), "NET %s↓ %s↑ B/s",
-                        rx_speed_text, tx_speed_text) < 0) {
-                error("network: snprintf() failed.");
-                return "";
-        }
-        return text;
+        block.urgent = rx_speed >= rx_threshold || tx_speed >= tx_threshold;
+        if (snprintf(full_text, size(full_text), "NET %s↓ %s↑ B/s",
+                        rx_speed_text, tx_speed_text) < 0)
+                *full_text = 0;
+
+        return &block;
 }

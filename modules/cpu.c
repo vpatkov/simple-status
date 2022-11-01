@@ -35,13 +35,20 @@ static int cpu_temperature(void) {
         return (t+500)/1000;
 }
 
-char *cpu_update(void) {
-        //const int usage_threshold = 50;
-        //const int temperature_threshold = 60;
-        static char text[16];
-        if (snprintf(text, size(text), "CPU %2d%% %2d°C", cpu_usage(), cpu_temperature()) < 0) {
-                error("cpu: snprintf() failed.");
-                return "";
-        }
-        return text;
+struct block *cpu_update(void) {
+        const int usage_threshold = 50;
+        const int temperature_threshold = 60;
+
+        static char full_text[16];
+        static struct block block = {
+                .full_text = full_text,
+        };
+
+        int u = cpu_usage();
+        int t = cpu_temperature();
+        block.urgent = u >= usage_threshold || t >= temperature_threshold;
+        if (snprintf(full_text, size(full_text), "CPU %2d%% %2d°C", u, t) < 0)
+                *full_text = 0;
+
+        return &block;
 }

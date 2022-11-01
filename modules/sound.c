@@ -42,12 +42,19 @@ static int volume(void) {
         return s ? v_percents : -v_percents;
 }
 
-char *sound_update(void) {
-        static char text[16];
+struct block *sound_update(void) {
+        const int volume_threshold = 50;
+
+        static char full_text[16];
+        static struct block block = {
+                .full_text = full_text,
+        };
+
         int v = volume();
-        if (snprintf(text, size(text), "🔊 %d%%%s", abs(v), v >= 0 ? "" : " muted") < 0) {
-                error("sound: snprintf() failed.");
-                return "";
-        }
-        return text;
+        block.urgent = v < 0 || v >= volume_threshold;
+        if (snprintf(full_text, size(full_text), "🔊 %d%%%s",
+                        abs(v), v >= 0 ? "" : " muted") < 0)
+                *full_text = 0;
+
+        return &block;
 }

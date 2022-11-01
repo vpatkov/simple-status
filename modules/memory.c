@@ -43,12 +43,18 @@ static int memory_usage(void) {
         return used_percents;
 }
 
-char *memory_update(void) {
-        //const int usage_threshold = 50;
-        static char text[16];
-        if (snprintf(text, size(text), "RAM %2d%%", memory_usage()) < 0) {
-                error("memory: snprintf() failed.");
-                return "";
-        }
-        return text;
+struct block *memory_update(void) {
+        const int usage_threshold = 50;
+
+        static char full_text[16];
+        static struct block block = {
+                .full_text = full_text,
+        };
+
+        int u = memory_usage();
+        block.urgent = u >= usage_threshold;
+        if (snprintf(full_text, size(full_text), "RAM %2d%%", u) < 0)
+                *full_text = 0;
+
+        return &block;
 }

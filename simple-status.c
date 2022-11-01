@@ -11,16 +11,18 @@
 struct module {
         const char *name;
         struct block *(*update)(void);
+        int interval;
+        struct block *current;
 };
 
 static struct module modules[] = {
-        { .name = "sound", .update = sound_update },
-        { .name = "cpu", .update = cpu_update },
-        { .name = "gpu", .update = gpu_update },
-        { .name = "memory", .update = memory_update },
-        { .name = "loadavg", .update = loadavg_update },
-        { .name = "network", .update = network_update },
-        { .name = "clock", .update = clock_update },
+        { .name = "sound", .update = sound_update, .interval = 1 },
+        { .name = "cpu", .update = cpu_update, .interval = 1 },
+        { .name = "gpu", .update = gpu_update, .interval = 1 },
+        { .name = "memory", .update = memory_update, .interval = 1 },
+        { .name = "loadavg", .update = loadavg_update, .interval = 1 },
+        { .name = "network", .update = network_update, .interval = 1 },
+        { .name = "clock", .update = clock_update, .interval = 1 },
 };
 
 struct colors {
@@ -65,7 +67,7 @@ int pscanf(const char *path, const char *format, ...) {
         return r;
 }
 
-int main(int argc, char **argv) {
+int main(void) {
         struct sigaction sa;
         memset(&sa, 0, sizeof(sa));
         sa.sa_handler = signal_handler;
@@ -75,22 +77,23 @@ int main(int argc, char **argv) {
 
         printf("{\"version\":1}\n[\n");
 
-        while (!quit) {
+        for (int tick = 0; !quit; tick++) {
                 printf("[{");
                 for (size_t i = 0; i < size(modules); i++) {
+                        struct module *m = &modules[i];
+                        if (tick % m->interval == 0)
+                                m->current = m->update();
+
                         if (i > 0)
                                 printf("},{");
 
-                        struct module *m = &modules[i];
-                        struct block *b = m->update();
-
                         printf("\"name\":\"%s\"", m->name);
-                        printf(",\"full_text\":\"%s\"", b->full_text);
+                        printf(",\"full_text\":\"%s\"", m->current->full_text);
 
-                        if (b->urgent)
+                        if (m->current->urgent)
                                 printf(",\"urgent\":true");
 
-                        struct colors *c = b->urgent ? &colors_urgent : &colors_normal;
+                        struct colors *c = m->current->urgent ? &colors_urgent : &colors_normal;
                         if (c->fg != -1)
                                 printf(",\"color\":\"#%06lx\"", c->fg & 0xffffff);
                         if (c->bg != -1)

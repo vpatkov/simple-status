@@ -25,14 +25,6 @@ static struct module modules[] = {
         { .name = "clock", .update = clock_update, .interval = 1 },
 };
 
-struct colors {
-        long fg, bg;  /* 0xRRGGBB or -1 for i3bar's default */
-};
-
-static struct colors
-        colors_normal = { .fg = -1, .bg = -1 },
-        colors_urgent = { .fg = 0x000000, .bg = 0xffff00 };
-
 static bool quit = false;
 
 static void signal_handler(int signum) {
@@ -86,18 +78,10 @@ int main(void) {
 
                         if (i > 0)
                                 printf("},{");
-
                         printf("\"name\":\"%s\"", m->name);
                         printf(",\"full_text\":\"%s\"", m->current->full_text);
-
                         if (m->current->urgent)
                                 printf(",\"urgent\":true");
-
-                        struct colors *c = m->current->urgent ? &colors_urgent : &colors_normal;
-                        if (c->fg != -1)
-                                printf(",\"color\":\"#%06lx\"", c->fg & 0xffffff);
-                        if (c->bg != -1)
-                                printf(",\"background\":\"#%06lx\"", c->bg & 0xffffff);
                 }
                 printf("}],\n");
                 fflush(stdout);

@@ -52,7 +52,7 @@ struct block *sound_update(void) {
 
         int v = volume();
         block.urgent = v < 0 || v >= volume_threshold;
-        if (snprintf(full_text, size(full_text), "🔊 %d%%%s",
+        if (snprintf(full_text, size(full_text), "VOL %d%%%s",
                         abs(v), v >= 0 ? "" : " muted") < 0)
                 *full_text = 0;
 

@@ -10,7 +10,7 @@ struct block *clock_update(void) {
         };
 
         time_t now = time(NULL);
-        if (strftime(full_text, size(full_text), "%a %F %R", localtime(&now)) == 0)
+        if (strftime(full_text, size(full_text), "%a %F %R ", localtime(&now)) == 0)
                 *full_text = 0;
 
         return &block;

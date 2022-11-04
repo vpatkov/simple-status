@@ -7,6 +7,7 @@
 #include "modules/memory.h"
 #include "modules/network.h"
 #include "modules/sound.h"
+#include "modules/keyboard.h"
 
 struct module {
         const char *name;
@@ -16,6 +17,7 @@ struct module {
 };
 
 static struct module modules[] = {
+        { .name = "keyboard", .update = keyboard_update, .interval = 1 },
         { .name = "sound", .update = sound_update, .interval = 1 },
         { .name = "cpu", .update = cpu_update, .interval = 1 },
         { .name = "gpu", .update = gpu_update, .interval = 1 },

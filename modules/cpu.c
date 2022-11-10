@@ -26,7 +26,7 @@ static int cpu_usage(void) {
 
 /* in degrees Celsius */
 static int cpu_temperature(void) {
-        static const char *path = "/sys/devices/platform/coretemp.0/hwmon/hwmon0/temp1_input";
+        static const char *path = "/sys/class/hwmon/hwmon0/temp1_input";
         long t;
         if (pscanf(path, "%ld", &t) != 1) {
                 error("cpu: pscanf() on %s failed.", path);

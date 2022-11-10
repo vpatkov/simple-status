@@ -3,7 +3,7 @@
 
 /* in degrees Celsius */
 static int gpu_temperature(void) {
-        static const char *path = "/sys/bus/pci/drivers/amdgpu/0000:01:00.0/hwmon/hwmon2/temp1_input";
+        static const char *path = "/sys/class/hwmon/hwmon2/temp1_input";
         long t;
         if (pscanf(path, "%ld", &t) != 1) {
                 error("gpu: pscanf() on %s failed.", path);

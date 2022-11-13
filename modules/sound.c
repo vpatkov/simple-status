@@ -43,7 +43,7 @@ static int volume(void) {
 }
 
 struct block *sound_update(void) {
-        const int volume_threshold = 50;
+        const int volume_threshold = 70;
 
         static char full_text[16];
         static struct block block = {

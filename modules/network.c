@@ -22,12 +22,10 @@ static void print_with_suffix(char *buf, size_t buf_len, double d) {
 }
 
 struct block *network_update(void) {
-        const double rx_threshold = 1e6;
-        const double tx_threshold = 100e3;
-
         static char full_text[32];
         static struct block block = {
                 .full_text = full_text,
+                .urgent = false,
         };
 
         unsigned long long rx_bytes, tx_bytes;
@@ -61,7 +59,6 @@ struct block *network_update(void) {
         print_with_suffix(rx_speed_text, size(rx_speed_text), rx_speed);
         print_with_suffix(tx_speed_text, size(tx_speed_text), tx_speed);
 
-        block.urgent = rx_speed >= rx_threshold || tx_speed >= tx_threshold;
         if (snprintf(full_text, size(full_text), "NET %s↓ %s↑ B/s",
                         rx_speed_text, tx_speed_text) < 0)
                 *full_text = 0;

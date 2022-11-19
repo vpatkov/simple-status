@@ -20,11 +20,10 @@ static size_t layout_index(void) {
 
 struct block *keyboard_update(void) {
         static char *layouts[] = {"EN", "RU"};
-        static struct block block = {
-                .urgent = false,
-        };
+        static struct block block;
 
         size_t l = layout_index();
         block.full_text = l < size(layouts) ? layouts[l] : "";
+        block.urgent = l > 0;
         return &block;
 }

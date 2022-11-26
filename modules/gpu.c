@@ -1,12 +1,13 @@
 #include "simple-status.h"
 #include "gpu.h"
 
+static char hwmon_path[64];
+
 /* in degrees Celsius */
 static int gpu_temperature(void) {
-        static const char *path = "/sys/class/hwmon/hwmon2/temp1_input";
         long t;
-        if (pscanf(path, "%ld", &t) != 1) {
-                error("gpu: pscanf() on %s failed.", path);
+        if (pscanf(hwmon_path, "%ld", &t) != 1) {
+                error("gpu: pscanf() on %s failed.", hwmon_path);
                 return 0;
         }
         return (t+500)/1000;
@@ -26,4 +27,19 @@ struct block *gpu_update(void) {
                 *full_text = 0;
 
         return &block;
+}
+
+void gpu_init(void) {
+        static const char *hwmon_name = "amdgpu";
+        int n = find_hwmon(hwmon_name);
+        if (n < 0) {
+                error("gpu: can't find hwmon for %s.", hwmon_name);
+                exit(EXIT_FAILURE);
+        }
+
+        if (snprintf(hwmon_path, size(hwmon_path),
+                        "/sys/class/hwmon/hwmon%d/temp1_input", n) < 0) {
+                error("gpu: snprintf() failed.");
+                exit(EXIT_FAILURE);
+        }
 }

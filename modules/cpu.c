@@ -1,6 +1,8 @@
 #include "simple-status.h"
 #include "cpu.h"
 
+static char hwmon_path[64];
+
 /* in percents */
 static int cpu_usage(void) {
         unsigned long long user, nice, system, idle;
@@ -26,10 +28,9 @@ static int cpu_usage(void) {
 
 /* in degrees Celsius */
 static int cpu_temperature(void) {
-        static const char *path = "/sys/class/hwmon/hwmon0/temp1_input";
         long t;
-        if (pscanf(path, "%ld", &t) != 1) {
-                error("cpu: pscanf() on %s failed.", path);
+        if (pscanf(hwmon_path, "%ld", &t) != 1) {
+                error("cpu: pscanf() on %s failed.", hwmon_path);
                 return 0;
         }
         return (t+500)/1000;
@@ -51,4 +52,19 @@ struct block *cpu_update(void) {
                 *full_text = 0;
 
         return &block;
+}
+
+void cpu_init(void) {
+        static const char *hwmon_name = "coretemp";
+        int n = find_hwmon(hwmon_name);
+        if (n < 0) {
+                error("cpu: can't find hwmon for %s.", hwmon_name);
+                exit(EXIT_FAILURE);
+        }
+
+        if (snprintf(hwmon_path, size(hwmon_path),
+                        "/sys/class/hwmon/hwmon%d/temp1_input", n) < 0) {
+                error("cpu: snprintf() failed.");
+                exit(EXIT_FAILURE);
+        }
 }

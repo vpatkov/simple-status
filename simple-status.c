@@ -12,6 +12,7 @@
 struct module {
         const char *name;
         struct block *(*update)(void);
+        void (*init)(void);
         int interval;
         struct block *current;
 };
@@ -19,8 +20,8 @@ struct module {
 static struct module modules[] = {
         { .name = "keyboard", .update = keyboard_update, .interval = 1 },
         { .name = "sound", .update = sound_update, .interval = 1 },
-        { .name = "cpu", .update = cpu_update, .interval = 1 },
-        { .name = "gpu", .update = gpu_update, .interval = 1 },
+        { .name = "cpu", .update = cpu_update, .interval = 1, .init = cpu_init },
+        { .name = "gpu", .update = gpu_update, .interval = 1, .init = gpu_init },
         { .name = "memory", .update = memory_update, .interval = 1 },
         { .name = "loadavg", .update = loadavg_update, .interval = 1 },
         { .name = "network", .update = network_update, .interval = 1 },
@@ -61,6 +62,22 @@ int pscanf(const char *path, const char *format, ...) {
         return r;
 }
 
+int find_hwmon(const char *name) {
+        char cur_path[64], cur_name[16];
+
+        for (int i = 0; ; i++) {
+                if (snprintf(cur_path, size(cur_path),
+                                "/sys/class/hwmon/hwmon%d/name", i) < 0)
+                        return -1;
+                if (pscanf(cur_path, "%15s", cur_name) == 1) {
+                        if (strcmp(cur_name, name) == 0)
+                                return i;
+                        continue;
+                }
+                return -1;
+        }
+}
+
 int main(void) {
         struct sigaction sa;
         memset(&sa, 0, sizeof(sa));
@@ -68,6 +85,12 @@ int main(void) {
         sigaction(SIGTERM, &sa, NULL);
         sigaction(SIGINT, &sa, NULL);
         sigaction(SIGUSR1, &sa, NULL);  /* Break sleep(), force update */
+
+        for (size_t i = 0; i < size(modules); i++) {
+                struct module *m = &modules[i];
+                if (m->init != NULL)
+                        m->init();
+        }
 
         printf("{\"version\":1}\n[\n");
 

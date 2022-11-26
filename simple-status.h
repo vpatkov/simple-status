@@ -38,4 +38,6 @@ extern void error(const char *format, ...)
 extern int pscanf(const char *path, const char *format, ...)
         __attribute__((format(scanf, 2, 3)));
 
+extern int find_hwmon(const char *name);
+
 #endif

@@ -21,6 +21,25 @@ static void print_with_suffix(char *buf, size_t buf_len, double d) {
                 *buf = 0;
 }
 
+static char *find_default_iface(void) {
+        static const char *path = "/proc/net/route";
+        FILE *f = fopen(path, "r");
+        if (f == NULL) {
+                error("network: can't open %s: %s.", path, strerror(errno));
+                return "lo";
+        }
+
+        static char iface[16];
+        unsigned long dest = -1;
+        char line[128];
+        while (fgets(line, size(line), f) != NULL)
+                if (sscanf(line, "%15s %lu", iface, &dest) == 2 && dest == 0)
+                        break;
+
+        fclose(f);
+        return (dest == 0) ? iface : "lo";
+}
+
 struct block *network_update(void) {
         static char full_text[32];
         static struct block block = {
@@ -28,9 +47,24 @@ struct block *network_update(void) {
                 .urgent = false,
         };
 
+        char *iface = find_default_iface();
+        if (strcmp(iface, "lo") == 0) {
+                block.full_text = "NET  DISCONNECTED  ";
+                block.urgent = true;
+                return &block;
+        }
+
+        char rx_path[128], tx_path[128];
+        if (snprintf(rx_path, size(rx_path),
+                        "/sys/class/net/%s/statistics/rx_bytes", iface) < 0)
+                *rx_path = 0;
+        if (snprintf(tx_path, size(tx_path),
+                        "/sys/class/net/%s/statistics/tx_bytes", iface) < 0)
+                *tx_path = 0;
+
         unsigned long long rx_bytes, tx_bytes;
-        if (pscanf("/sys/class/net/enp6s0/statistics/rx_bytes", "%llu", &rx_bytes) != 1 ||
-            pscanf("/sys/class/net/enp6s0/statistics/tx_bytes", "%llu", &tx_bytes) != 1) {
+        if (pscanf(rx_path, "%llu", &rx_bytes) != 1 ||
+            pscanf(tx_path, "%llu", &tx_bytes) != 1) {
                 error("network: pscanf() failed.");
                 *full_text = 0;
                 return &block;

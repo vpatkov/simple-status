@@ -4,7 +4,6 @@
 /* in percents */
 static int memory_usage(void) {
         static const char *path = "/proc/meminfo";
-
         FILE *f = fopen(path, "r");
         if (f == NULL) {
                 error("memory: can't open %s: %s.", path, strerror(errno));
@@ -22,12 +21,6 @@ static int memory_usage(void) {
                         sscanf(line, "Cached: %llu", &cached) == 1
                 )
                         read_counter++;
-        }
-
-        if (ferror(f)) {
-                error("memory: fgets() on %s failed.", path);
-                fclose(f);
-                return 0;
         }
         fclose(f);
 

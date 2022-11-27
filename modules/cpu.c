@@ -1,8 +1,6 @@
 #include "simple-status.h"
 #include "cpu.h"
 
-static char hwmon_path[64];
-
 /* in percents */
 static int cpu_usage(void) {
         unsigned long long user, nice, system, idle;
@@ -25,6 +23,8 @@ static int cpu_usage(void) {
 
         return usage;
 }
+
+static char hwmon_path[64];
 
 /* in degrees Celsius */
 static int cpu_temperature(void) {

@@ -19,7 +19,7 @@ static size_t layout_index(void) {
 }
 
 struct block *keyboard_update(void) {
-        static char *layouts[] = {"EN", "RU"};
+        static const char *layouts[] = {"EN", "RU"};
         static struct block block;
 
         size_t l = layout_index();

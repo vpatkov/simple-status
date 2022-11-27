@@ -7,7 +7,8 @@ static int volume(void) {
 
 #define E(x) { \
         if (x) { \
-                if (mixer) snd_mixer_close(mixer); \
+                if (mixer) \
+                        snd_mixer_close(mixer); \
                 error("sound: %s failed.", #x); \
                 return 0; \
         } \
@@ -52,9 +53,7 @@ struct block *sound_update(void) {
 
         int v = volume();
         block.urgent = v < 0 || v >= volume_threshold;
-        if (snprintf(full_text, size(full_text), "VOL %2d%%%s",
-                        abs(v), v >= 0 ? "" : " muted") < 0)
-                *full_text = 0;
-
+        snprintf(full_text, size(full_text), "VOL %2d%%%s",
+                abs(v), v >= 0 ? "" : " muted");
         return &block;
 }

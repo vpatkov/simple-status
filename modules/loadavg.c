@@ -17,8 +17,6 @@ struct block *loadavg_update(void) {
         }
 
         block.urgent = loadavg >= threshold;
-        if (snprintf(full_text, size(full_text), "LOAD %.1f", loadavg) < 0)
-                *full_text = 0;
-
+        snprintf(full_text, size(full_text), "LOAD %.1f", loadavg);
         return &block;
 }

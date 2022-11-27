@@ -11,7 +11,8 @@ static int cpu_usage(void) {
         }
 
         static unsigned long long total_prev, idle_prev;
-        unsigned long long total = user + nice + system + idle,
+        unsigned long long
+                total = user + nice + system + idle,
                 diff_total = total - total_prev,
                 diff_idle = idle - idle_prev;
 
@@ -48,9 +49,7 @@ struct block *cpu_update(void) {
         int u = cpu_usage();
         int t = cpu_temperature();
         block.urgent = u >= usage_threshold || t >= temperature_threshold;
-        if (snprintf(full_text, size(full_text), "CPU %2d%% %2d°C", u, t) < 0)
-                *full_text = 0;
-
+        snprintf(full_text, size(full_text), "CPU %2d%% %2d°C", u, t);
         return &block;
 }
 
@@ -61,10 +60,6 @@ void cpu_init(void) {
                 error("cpu: can't find hwmon for %s.", hwmon_name);
                 exit(EXIT_FAILURE);
         }
-
-        if (snprintf(hwmon_path, size(hwmon_path),
-                        "/sys/class/hwmon/hwmon%d/temp1_input", n) < 0) {
-                error("cpu: snprintf() failed.");
-                exit(EXIT_FAILURE);
-        }
+        snprintf(hwmon_path, size(hwmon_path),
+                "/sys/class/hwmon/hwmon%d/temp1_input", n);
 }

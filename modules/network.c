@@ -3,29 +3,23 @@
 #include <time.h>
 
 static void print_with_suffix(char *buf, size_t buf_len, double d) {
-        int err;
         double m = d/1e6, k = d/1e3;
-
         if (m >= 10.0)
-                err = snprintf(buf, buf_len, "%3.0fM", m);
+                snprintf(buf, buf_len, "%3.0fM", m);
         else if (m >= 0.1)
-                err = snprintf(buf, buf_len, "%2.1fM", m);
+                snprintf(buf, buf_len, "%2.1fM", m);
         else if (k >= 10.0)
-                err = snprintf(buf, buf_len, "%3.0fk", k);
+                snprintf(buf, buf_len, "%3.0fk", k);
         else if (k >= 0.1)
-                err = snprintf(buf, buf_len, "%2.1fk", k);
+                snprintf(buf, buf_len, "%2.1fk", k);
         else
-                err = snprintf(buf, buf_len, "%4.0f", d);
-
-        if (err < 0)
-                *buf = 0;
+                snprintf(buf, buf_len, "%4.0f", d);
 }
 
 static char *find_default_iface(void) {
-        static const char *path = "/proc/net/route";
-        FILE *f = fopen(path, "r");
+        FILE *f = fopen("/proc/net/route", "r");
         if (f == NULL) {
-                error("network: can't open %s: %s.", path, strerror(errno));
+                error("network: can't open /proc/net/route: %s.", strerror(errno));
                 return "lo";
         }
 
@@ -44,7 +38,6 @@ struct block *network_update(void) {
         static char full_text[32];
         static struct block block = {
                 .full_text = full_text,
-                .urgent = false,
         };
 
         char *iface = find_default_iface();
@@ -55,12 +48,8 @@ struct block *network_update(void) {
         }
 
         char rx_path[128], tx_path[128];
-        if (snprintf(rx_path, size(rx_path),
-                        "/sys/class/net/%s/statistics/rx_bytes", iface) < 0)
-                *rx_path = 0;
-        if (snprintf(tx_path, size(tx_path),
-                        "/sys/class/net/%s/statistics/tx_bytes", iface) < 0)
-                *tx_path = 0;
+        snprintf(rx_path, size(rx_path), "/sys/class/net/%s/statistics/rx_bytes", iface);
+        snprintf(tx_path, size(tx_path), "/sys/class/net/%s/statistics/tx_bytes", iface);
 
         unsigned long long rx_bytes, tx_bytes;
         if (pscanf(rx_path, "%llu", &rx_bytes) != 1 ||
@@ -89,13 +78,12 @@ struct block *network_update(void) {
         tx_bytes_prev = tx_bytes;
         ts_prev = ts;
 
-        static char rx_speed_text[8], tx_speed_text[8];
+        char rx_speed_text[8], tx_speed_text[8];
         print_with_suffix(rx_speed_text, size(rx_speed_text), rx_speed);
         print_with_suffix(tx_speed_text, size(tx_speed_text), tx_speed);
 
-        if (snprintf(full_text, size(full_text), "NET %s↓ %s↑ B/s",
-                        rx_speed_text, tx_speed_text) < 0)
-                *full_text = 0;
-
+        block.urgent = false;
+        snprintf(full_text, size(full_text), "NET %s↓ %s↑ B/s",
+                rx_speed_text, tx_speed_text);
         return &block;
 }

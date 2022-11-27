@@ -66,9 +66,7 @@ int find_hwmon(const char *name) {
         char cur_path[64], cur_name[16];
 
         for (int i = 0; ; i++) {
-                if (snprintf(cur_path, size(cur_path),
-                                "/sys/class/hwmon/hwmon%d/name", i) < 0)
-                        return -1;
+                snprintf(cur_path, size(cur_path), "/sys/class/hwmon/hwmon%d/name", i);
                 if (pscanf(cur_path, "%15s", cur_name) == 1) {
                         if (strcmp(cur_name, name) == 0)
                                 return i;

@@ -23,9 +23,7 @@ struct block *gpu_update(void) {
 
         int t = gpu_temperature();
         block.urgent = t >= temperature_threshold;
-        if (snprintf(full_text, size(full_text), "GPU %2d°C", t) < 0)
-                *full_text = 0;
-
+        snprintf(full_text, size(full_text), "GPU %2d°C", t);
         return &block;
 }
 
@@ -36,10 +34,6 @@ void gpu_init(void) {
                 error("gpu: can't find hwmon for %s.", hwmon_name);
                 exit(EXIT_FAILURE);
         }
-
-        if (snprintf(hwmon_path, size(hwmon_path),
-                        "/sys/class/hwmon/hwmon%d/temp1_input", n) < 0) {
-                error("gpu: snprintf() failed.");
-                exit(EXIT_FAILURE);
-        }
+        snprintf(hwmon_path, size(hwmon_path),
+                "/sys/class/hwmon/hwmon%d/temp1_input", n);
 }

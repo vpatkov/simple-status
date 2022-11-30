@@ -4,16 +4,14 @@
 
 static void print_with_suffix(char *buf, size_t buf_len, double d) {
         double m = d/1e6, k = d/1e3;
-        if (m >= 10.0)
+        if (m > 9.95)
                 snprintf(buf, buf_len, "%3.0fM", m);
         else if (m >= 0.1)
                 snprintf(buf, buf_len, "%2.1fM", m);
-        else if (k >= 10.0)
+        else if (k > 9.95)
                 snprintf(buf, buf_len, "%3.0fk", k);
-        else if (k >= 0.1)
-                snprintf(buf, buf_len, "%2.1fk", k);
         else
-                snprintf(buf, buf_len, "%4.0f", d);
+                snprintf(buf, buf_len, "%2.1fk", k);
 }
 
 static char *find_default_iface(void) {
@@ -80,7 +78,7 @@ struct block *network_update(void) {
         print_with_suffix(rx_speed_text, size(rx_speed_text), rx_speed);
         print_with_suffix(tx_speed_text, size(tx_speed_text), tx_speed);
 
-        snprintf(full_text, size(full_text), "NET %s↓ %s↑ B/s",
+        snprintf(full_text, size(full_text), "NET %s↓ %s↑",
                 rx_speed_text, tx_speed_text);
 
         block.full_text = full_text;

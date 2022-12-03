@@ -35,6 +35,17 @@ static void signal_handler(int signum) {
                 quit = true;
 }
 
+static void setup_signals(void) {
+        struct sigaction sa = {
+                .sa_flags = SA_RESTART,
+                .sa_handler = signal_handler,
+        };
+
+        sigaction(SIGTERM, &sa, NULL);
+        sigaction(SIGINT, &sa, NULL);
+        sigaction(SIGUSR1, &sa, NULL);
+};
+
 void error(const char *format, ...) {
         fprintf(stderr, "simple-status: error: ");
 
@@ -77,12 +88,7 @@ int find_hwmon(const char *name) {
 }
 
 int main(void) {
-        struct sigaction sa;
-        memset(&sa, 0, sizeof(sa));
-        sa.sa_handler = signal_handler;
-        sigaction(SIGTERM, &sa, NULL);
-        sigaction(SIGINT, &sa, NULL);
-        sigaction(SIGUSR1, &sa, NULL);  /* Break sleep(), force update */
+        setup_signals();
 
         for (size_t i = 0; i < size(modules); i++) {
                 struct module *m = &modules[i];

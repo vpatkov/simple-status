@@ -60,6 +60,11 @@ void mpd_init(void) {
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		error("mpd: %s.", mpd_connection_get_error_message(conn));
 		mpd_connection_free(conn);
-		exit(EXIT_SUCCESS);
+		exit(EXIT_FAILURE);
 	}
+}
+
+void mpd_deinit(void) {
+	if (conn != NULL)
+		mpd_connection_free(conn);
 }

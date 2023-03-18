@@ -11,8 +11,8 @@ static int cpu_usage(void) {
 	}
 
 	static unsigned long long total_prev, idle_prev;
-	unsigned long long total = user + nice + system + idle,
-	unsigned long long diff_total = total - total_prev,
+	unsigned long long total = user + nice + system + idle;
+	unsigned long long diff_total = total - total_prev;
 	unsigned long long diff_idle = idle - idle_prev;
 
 	total_prev = total;

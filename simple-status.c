@@ -14,13 +14,16 @@ struct module {
 	const char *name;
 	struct block *(*update)(void);
 	void (*init)(void);
+	void (*deinit)(void);
 	int interval;
 	struct block *current;
 };
 
 static struct module modules[] = {
-	{ .name = "keyboard", .update = keyboard_update, .interval = 1 },
-	{ .name = "mpd", .update = mpd_update, .interval = 1, .init = mpd_init },
+	{ .name = "keyboard", .update = keyboard_update, .interval = 1, 
+		.init = keyboard_init, .deinit = keyboard_deinit },
+	{ .name = "mpd", .update = mpd_update, .interval = 1, 
+		.init = mpd_init, .deinit = mpd_deinit },
 	{ .name = "sound", .update = sound_update, .interval = 1 },
 	{ .name = "cpu", .update = cpu_update, .interval = 1, .init = cpu_init },
 	{ .name = "gpu", .update = gpu_update, .interval = 1, .init = gpu_init },
@@ -117,6 +120,12 @@ int main(void) {
 		printf("}],\n");
 		fflush(stdout);
 		sleep(1);
+	}
+
+	for (size_t i = 0; i < size(modules); i++) {
+		struct module *m = &modules[i];
+		if (m->deinit != NULL)
+			m->deinit();
 	}
 
 	return EXIT_SUCCESS;

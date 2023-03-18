@@ -1,4 +1,4 @@
-#ifndef MPD
+#ifndef MPD_H
 #define MPD_H
 
 extern struct block *mpd_update(void);

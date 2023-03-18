@@ -10,42 +10,34 @@ struct block *mpd_update(void) {
 		.urgent = false,
 	};
 
-	if (!mpd_send_status(conn)) {
-		error("mpd: mpd_send_status() failed.");
-		block.full_text = "";
-		return &block;
-	}
-	struct mpd_status *status = mpd_recv_status(conn);
-	if (status == NULL) {
-		error("mpd: mpd_recv_status() failed.");
+	struct mpd_status *status;
+	if (!mpd_send_status(conn) || !(status = mpd_recv_status(conn))) {
+		error("mpd: can't get status.");
 		block.full_text = "";
 		return &block;
 	}
 	enum mpd_state state = mpd_status_get_state(status);
 	mpd_status_free(status);
-
-	if (!mpd_send_current_song(conn)) {
-		error("mpd: mpd_send_current_song() failed.");
-		block.full_text = "";
-		return &block;
-	}
-	struct mpd_song *song = mpd_recv_song(conn);
-	if (song == NULL) {
-		block.full_text = "";
-		return &block;
-	}
-
-	char artist[32], title[32];
-	snprintf(artist, size(artist), "%s", mpd_song_get_tag(song, MPD_TAG_ARTIST, 0));
-	snprintf(title, size(title), "%s", mpd_song_get_tag(song, MPD_TAG_TITLE, 0));
-	mpd_song_free(song);
 	mpd_response_finish(conn);
 
 	if (state != MPD_STATE_PLAY) {
 		block.full_text = "";
 		return &block;
 	}
-	snprintf(full_text, size(full_text), "%s: %s", artist, title);
+
+	struct mpd_song *song;
+	if (!mpd_send_current_song(conn) || !(song = mpd_recv_song(conn))) {
+		error("mpd: can't get current song.");
+		block.full_text = "";
+		return &block;
+	}
+	const char *artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
+	const char *title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
+	snprintf(full_text, size(full_text), "%s: %s",
+		artist ? artist : "???", title ? title : "???");
+	mpd_song_free(song);
+	mpd_response_finish(conn);
+
 	block.full_text = full_text;
 	return &block;
 }

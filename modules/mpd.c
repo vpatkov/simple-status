@@ -31,7 +31,6 @@ struct block *mpd_update(void) {
 	}
 	struct mpd_song *song = mpd_recv_song(conn);
 	if (song == NULL) {
-		error("mpd: mpd_recv_song() failed.");
 		block.full_text = "";
 		return &block;
 	}

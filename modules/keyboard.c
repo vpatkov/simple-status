@@ -3,27 +3,27 @@
 #include <X11/XKBlib.h>
 
 static size_t layout_index(void) {
-        Display *dpy = XOpenDisplay(NULL);
-        if (dpy == NULL) {
-                error("keyboard: XOpenDisplay() failed.");
-                return SIZE_MAX;
-        }
-        XkbStateRec state;
-        if (XkbGetState(dpy, XkbUseCoreKbd, &state) != 0) {
-                error("keyboard: XkbGetState() failed.");
-                XCloseDisplay(dpy);
-                return SIZE_MAX;
-        }
-        XCloseDisplay(dpy);
-        return state.group;
+	Display *dpy = XOpenDisplay(NULL);
+	if (dpy == NULL) {
+		error("keyboard: XOpenDisplay() failed.");
+		return SIZE_MAX;
+	}
+	XkbStateRec state;
+	if (XkbGetState(dpy, XkbUseCoreKbd, &state) != 0) {
+		error("keyboard: XkbGetState() failed.");
+		XCloseDisplay(dpy);
+		return SIZE_MAX;
+	}
+	XCloseDisplay(dpy);
+	return state.group;
 }
 
 struct block *keyboard_update(void) {
-        static const char *layouts[] = {"EN", "RU"};
-        static struct block block;
+	static const char *layouts[] = {"EN", "RU"};
+	static struct block block;
 
-        size_t l = layout_index();
-        block.full_text = l < size(layouts) ? layouts[l] : "";
-        block.urgent = l > 0;
-        return &block;
+	size_t l = layout_index();
+	block.full_text = l < size(layouts) ? layouts[l] : "";
+	block.urgent = l > 0;
+	return &block;
 }

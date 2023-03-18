@@ -10,7 +10,7 @@ CFLAGS += -Wall -Wextra -Wundef -Wlogical-op -Wredundant-decls -Wshadow
 CFLAGS += -MMD -MP
 CFLAGS += -I.
 
-LDFLAGS = -s -Ofast -flto -lasound -lX11
+LDFLAGS = -s -Ofast -flto -lasound -lX11 -lmpdclient
 
 .PHONY: all clean install uninstall
 

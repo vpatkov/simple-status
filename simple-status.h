@@ -28,15 +28,15 @@
 #define size(a) sizeof(a)/sizeof(*a)
 
 struct block {
-        const char *full_text;
-        bool urgent;
+	const char *full_text;
+	bool urgent;
 };
 
 extern void error(const char *format, ...)
-        __attribute__((format(printf, 1, 2)));
+	__attribute__((format(printf, 1, 2)));
 
 extern int pscanf(const char *path, const char *format, ...)
-        __attribute__((format(scanf, 2, 3)));
+	__attribute__((format(scanf, 2, 3)));
 
 extern int find_hwmon(const char *name);
 

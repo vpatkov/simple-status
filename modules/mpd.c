@@ -4,6 +4,34 @@
 
 static struct mpd_connection *conn;
 
+/* Remove invalid trailing UTF-8 code point, if any */
+static void fix_trailing_codepoint(char *s) {
+	if (*s == 0)
+		return;
+
+	size_t len = strlen(s);
+	char *p = s + len - 1;
+	while (p > s && (*p & 0xc0) == 0x80)
+		p--;
+
+	int n;
+	if ((*p & 0x80) == 0)
+		n = 1;
+	else if ((*p & 0xe0) == 0xc0)
+		n = 2;
+	else if ((*p & 0xf0) == 0xe0)
+		n = 3;
+	else if ((*p & 0xf8) == 0xf0)
+		n = 4;
+	else
+		n = 0;
+
+	if (p + n <= s + len)
+		p[n] = 0;
+	else
+		p[0] = 0;
+}
+
 struct block *mpd_update(void) {
 	static char full_text[64];
 	static struct block block = {
@@ -33,8 +61,14 @@ struct block *mpd_update(void) {
 	}
 	const char *artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
 	const char *title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
-	snprintf(full_text, size(full_text), "%s: %s",
+
+	int n = snprintf(full_text, size(full_text) - 1, "%s: %s",
 		artist ? artist : "???", title ? title : "???");
+	if (n >= (int)size(full_text) - 1) {
+		fix_trailing_codepoint(full_text);
+		strcat(full_text, ">");
+	}
+
 	mpd_song_free(song);
 	mpd_response_finish(conn);
 

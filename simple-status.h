@@ -25,7 +25,7 @@
 #define __attribute__(x)
 #endif
 
-#define size(a) sizeof(a)/sizeof(*a)
+#define size(a) (sizeof(a)/sizeof(*a))
 
 struct block {
 	const char *full_text;

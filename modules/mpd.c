@@ -32,6 +32,13 @@ static void fix_trailing_codepoint(char *s) {
 		p[0] = 0;
 }
 
+/* Simple af JSON string sanitizer */
+static void sanitize(char *s) {
+	for (char c; (c = *s) != 0; s++)
+		if (c == '"' || c == '\\' || (c > 0 && c <= 0x1f) || c == 0x7f)
+			*s = ' ';
+}
+
 struct block *mpd_update(void) {
 	static char full_text[64];
 	static struct block block = {
@@ -72,6 +79,7 @@ struct block *mpd_update(void) {
 	mpd_song_free(song);
 	mpd_response_finish(conn);
 
+	sanitize(full_text);
 	block.full_text = full_text;
 	return &block;
 }

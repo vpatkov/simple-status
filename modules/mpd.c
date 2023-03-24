@@ -32,7 +32,7 @@ static void fix_trailing_codepoint(char *s) {
 		p[0] = 0;
 }
 
-/* Simple af JSON string sanitizer */
+/* Simple JSON string sanitizer */
 static void sanitize(char *s) {
 	for (char c; (c = *s) != 0; s++)
 		if (c == '"' || c == '\\' || (c > 0 && c <= 0x1f) || c == 0x7f)
@@ -45,16 +45,28 @@ struct block *mpd_update(void) {
 		.urgent = false,
 	};
 
+	if (conn == NULL) {
+		mpd_init();
+		if (conn == NULL) {
+			block.full_text = "";
+			return &block;
+		}
+	}
+
 	struct mpd_status *status;
 	if (!mpd_send_status(conn) || !(status = mpd_recv_status(conn))) {
-		error("mpd: can't get status.");
+		error("mpd: %s.", mpd_connection_get_error_message(conn));
+		if (mpd_connection_get_error(conn) == MPD_ERROR_CLOSED) {
+			mpd_deinit();
+			mpd_init();
+		}
 		block.full_text = "";
 		return &block;
 	}
+
 	enum mpd_state state = mpd_status_get_state(status);
 	mpd_status_free(status);
 	mpd_response_finish(conn);
-
 	if (state != MPD_STATE_PLAY) {
 		block.full_text = "";
 		return &block;
@@ -62,13 +74,13 @@ struct block *mpd_update(void) {
 
 	struct mpd_song *song;
 	if (!mpd_send_current_song(conn) || !(song = mpd_recv_song(conn))) {
-		error("mpd: can't get current song.");
+		error("mpd: %s.", mpd_connection_get_error_message(conn));
 		block.full_text = "";
 		return &block;
 	}
+
 	const char *artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
 	const char *title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
-
 	int n = snprintf(full_text, size(full_text) - 1, "%s: %s",
 		artist ? artist : "???", title ? title : "???");
 	if (n >= (int)size(full_text) - 1) {
@@ -78,7 +90,6 @@ struct block *mpd_update(void) {
 
 	mpd_song_free(song);
 	mpd_response_finish(conn);
-
 	sanitize(full_text);
 	block.full_text = full_text;
 	return &block;
@@ -92,12 +103,13 @@ void mpd_init(void) {
 	}
 	if (mpd_connection_get_error(conn) != MPD_ERROR_SUCCESS) {
 		error("mpd: %s.", mpd_connection_get_error_message(conn));
-		mpd_connection_free(conn);
-		exit(EXIT_FAILURE);
+		mpd_deinit();
 	}
 }
 
 void mpd_deinit(void) {
-	if (conn != NULL)
+	if (conn != NULL) {
 		mpd_connection_free(conn);
+		conn = NULL;
+	}
 }

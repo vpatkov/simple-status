@@ -36,7 +36,7 @@ static struct module modules[] = {
 static bool quit = false;
 
 static void signal_handler(int signum) {
-	if (signum == SIGTERM || signum == SIGINT)
+	if (signum != SIGUSR1)
 		quit = true;
 }
 
@@ -48,6 +48,7 @@ static void setup_signals(void) {
 
 	sigaction(SIGTERM, &sa, NULL);
 	sigaction(SIGINT, &sa, NULL);
+	sigaction(SIGPIPE, &sa, NULL);
 	sigaction(SIGUSR1, &sa, NULL);
 };
 
@@ -101,7 +102,7 @@ int main(void) {
 			m->init();
 	}
 
-	printf("{\"version\":1}\n[\n");
+	printf("{\"version\":1,\"stop_signal\":0}\n[\n");
 
 	for (int tick = 0; !quit; tick++) {
 		printf("[{");

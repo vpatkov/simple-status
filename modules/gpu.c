@@ -14,7 +14,7 @@ static int gpu_temperature(void) {
 }
 
 struct block *gpu_update(void) {
-	const int temperature_threshold = 60;
+	const int temperature_threshold = 70;
 
 	static char full_text[16];
 	static struct block block = {

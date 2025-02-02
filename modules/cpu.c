@@ -38,7 +38,7 @@ static int cpu_temperature(void) {
 
 struct block *cpu_update(void) {
 	const int usage_threshold = 50;
-	const int temperature_threshold = 60;
+	const int temperature_threshold = 70;
 
 	static char full_text[16];
 	static struct block block = {

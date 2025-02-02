@@ -2,7 +2,7 @@
 #include "loadavg.h"
 
 struct block *loadavg_update(void) {
-	const float threshold = 2.0;
+	const float threshold = 3.0;
 
 	static char full_text[16];
 	static struct block block = {

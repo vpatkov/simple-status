@@ -40,7 +40,7 @@ static void sanitize(char *s) {
 }
 
 struct block *mpd_update(void) {
-	static char full_text[64];
+	static char full_text[128];
 	static struct block block = {
 		.urgent = false,
 	};
@@ -79,10 +79,15 @@ struct block *mpd_update(void) {
 		return &block;
 	}
 
+	// [name: ] [artist - ] title
+	const char *name = mpd_song_get_tag(song, MPD_TAG_NAME, 0);
 	const char *artist = mpd_song_get_tag(song, MPD_TAG_ARTIST, 0);
 	const char *title = mpd_song_get_tag(song, MPD_TAG_TITLE, 0);
-	int n = snprintf(full_text, size(full_text) - 1, "%s: %s",
-		artist ? artist : "???", title ? title : "???");
+	int n = snprintf(full_text, size(full_text) - 1, "%s%s%s%s%s",
+		name ? name : "", name ? ": " : "",
+		artist ? artist : "", artist ? " - " : "",
+		title ? title : "???");
+
 	if (n >= (int)size(full_text) - 1) {
 		fix_trailing_codepoint(full_text);
 		strcat(full_text, ">");

@@ -16,7 +16,7 @@ static int volume(void) {
 
 	snd_mixer_t *mixer = NULL;
 	E(snd_mixer_open(&mixer, 0));
-	E(snd_mixer_attach(mixer, "default"));
+	E(snd_mixer_attach(mixer, "hw:0"));
 	E(snd_mixer_selem_register(mixer, NULL, NULL));
 	E(snd_mixer_load(mixer));
 
@@ -28,8 +28,8 @@ static int volume(void) {
 	snd_mixer_elem_t *elem;
 	E((elem = snd_mixer_find_selem(mixer, id)) == NULL);
 	long v, vmax, vmin;
-	E(snd_mixer_selem_get_playback_volume_range(elem, &vmin, &vmax));
-	E(snd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_FRONT_LEFT, &v));
+	E(snd_mixer_selem_get_playback_dB_range(elem, &vmin, &vmax));
+	E(snd_mixer_selem_get_playback_dB(elem, SND_MIXER_SCHN_FRONT_LEFT, &v));
 	int s;
 	E(snd_mixer_selem_get_playback_switch(elem, SND_MIXER_SCHN_FRONT_LEFT, &s));
 
@@ -37,10 +37,16 @@ static int volume(void) {
 
 #undef E
 
-	int v_percents = (vmax-vmin == 0) ? 100 :
-		100 * (v-vmin) / (vmax-vmin);
+	// Normalize like alsamixer (volume_mapping.c)
+	double norm = exp10((v-vmax)/6000.0);
+	if (vmin != SND_CTL_TLV_DB_GAIN_MUTE) {
+		double min_norm = exp10((vmin-vmax)/6000.0);
+		if (min_norm != 1)
+			norm = (norm-min_norm)/(1-min_norm);
+	}
 
-	return s ? v_percents : -v_percents;
+	int percents = round(norm*100);
+	return s ? percents : -percents;
 }
 
 struct block *sound_update(void) {

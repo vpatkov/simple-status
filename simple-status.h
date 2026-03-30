@@ -5,7 +5,7 @@
 #error "This works on Linux only"
 #endif
 
-#define _DEFAULT_SOURCE
+#define _GNU_SOURCE
 
 #include <stdint.h>
 #include <stdbool.h>
@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <signal.h>
 #include <unistd.h>
+#include <math.h>
 
 #ifndef __GNUC__
 #define __attribute__(x)
